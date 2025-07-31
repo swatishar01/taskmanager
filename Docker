@@ -1,0 +1,30 @@
+# Use OpenJDK 24 as the base image
+FROM eclipse-temurin:24-jdk
+
+# Set working directory
+WORKDIR /app
+
+# Copy the Gradle files first to leverage Docker cache
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+
+# Make the Gradle wrapper executable
+RUN chmod +x gradlew
+
+# Copy the source code
+COPY src src
+
+# Build the application
+RUN ./gradlew build -x test
+
+# Expose the port the app runs on
+EXPOSE 8080
+
+# Add healthcheck
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget -q --spider http://localhost:8080/actuator/health || exit 1
+
+# Run the application with proper network settings
+CMD ["java", "-Djava.net.preferIPv4Stack=true", "-jar", "C:\Users\amits\Downloads\TaskManager\TaskManager"]
